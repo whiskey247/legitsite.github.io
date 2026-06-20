@@ -76,6 +76,29 @@
     pointer-events: none;
   }
   .tap-hint.show { opacity: 0.9; }
+  .tap-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .tap-overlay.show { display: flex; }
+  .tap-overlay span {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    padding: 0.8rem 1.6rem;
+    border-radius: 999px;
+    font-size: 1rem;
+  }
+  .video-wrap {
+    position: relative;
+    display: inline-block;
+  }
 </style>
 </head>
 <body>
@@ -89,38 +112,52 @@
   <div class="spacer"></div>
 
   <section class="video-zone">
-    <video id="surpriseVideo" src="funny.mp4" muted playsinline></video>
+    <div class="video-wrap">
+      <video id="surpriseVideo" src="funny.mp4" playsinline></video>
+      <div class="tap-overlay" id="tapOverlay"><span>🔊 tap to play</span></div>
+    </div>
   </section>
-
-  <div class="tap-hint" id="tapHint">tap the video for sound 🔊</div>
 
   <script>
     const video = document.getElementById('surpriseVideo');
-    const hint = document.getElementById('tapHint');
-    let hasPlayed = false;
+    const overlay = document.getElementById('tapOverlay');
+    let hasTriggered = false;
+
+    function stopAfterThreeSeconds() {
+      setTimeout(() => {
+        video.pause();
+      }, 3000);
+    }
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && !hasPlayed) {
-          hasPlayed = true;
+        if (entry.isIntersecting && !hasTriggered) {
+          hasTriggered = true;
           video.currentTime = 0;
-          video.play();
-          hint.classList.add('show');
 
-          setTimeout(() => {
-            video.pause();
-            hint.classList.remove('show');
-          }, 3000);
+          const playPromise = video.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                // Sound played automatically — great
+                stopAfterThreeSeconds();
+              })
+              .catch(() => {
+                // Browser blocked autoplay with sound — show tap prompt
+                overlay.classList.add('show');
+              });
+          }
         }
       });
     }, { threshold: 0.6 });
 
     observer.observe(video);
 
-    // Tap to unmute (autoplay-with-sound requires a user gesture)
-    video.addEventListener('click', () => {
-      video.muted = !video.muted;
-      hint.classList.remove('show');
+    overlay.addEventListener('click', () => {
+      overlay.classList.remove('show');
+      video.currentTime = 0;
+      video.play();
+      stopAfterThreeSeconds();
     });
   </script>
 
