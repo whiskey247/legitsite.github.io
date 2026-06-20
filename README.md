@@ -1,4 +1,4 @@
 yooo sup 
 open this 
 
-https://whiskey247.github.io/legitsite.github.io/
+https://whiskey247.github.io/legitsite/
