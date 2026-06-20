@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scroll for a surprise</title>
+<style>
+  :root {
+    --bg: #fdf6e3;
+    --ink: #2b2620;
+    --accent: #ff6b35;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    max-width: 14ch;
+  }
+  .hero p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    opacity: 0.7;
+  }
+  .arrow {
+    margin-top: 3rem;
+    font-size: 2rem;
+    color: var(--accent);
+    animation: bounce 1.6s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(14px); }
+  }
+  .spacer { height: 60vh; }
+  .video-zone {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  video {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    background: #000;
+  }
+  .tap-hint {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .tap-hint.show { opacity: 0.9; }
+</style>
+</head>
+<body>
+
+  <section class="hero">
+    <h1>Don't scroll down.</h1>
+    <p>(okay fine, scroll down)</p>
+    <div class="arrow">↓</div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <section class="video-zone">
+    <video id="surpriseVideo" src="funny.mp4" muted playsinline></video>
+  </section>
+
+  <div class="tap-hint" id="tapHint">tap the video for sound 🔊</div>
+
+  <script>
+    const video = document.getElementById('surpriseVideo');
+    const hint = document.getElementById('tapHint');
+    let hasPlayed = false;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !hasPlayed) {
+          hasPlayed = true;
+          video.currentTime = 0;
+          video.play();
+          hint.classList.add('show');
+
+          setTimeout(() => {
+            video.pause();
+            hint.classList.remove('show');
+          }, 3000);
+        }
+      });
+    }, { threshold: 0.6 });
+
+    observer.observe(video);
+
+    // Tap to unmute (autoplay-with-sound requires a user gesture)
+    video.addEventListener('click', () => {
+      video.muted = !video.muted;
+      hint.classList.remove('show');
+    });
+  </script>
+
+</body>
+</html>
